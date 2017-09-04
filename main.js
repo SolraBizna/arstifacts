@@ -290,12 +290,12 @@ try {
             }
             if(curImageNo >= NUM_IMAGES) {
                 active = false;
-                progress.style = "display:none";
+                progress.style.display = "none";
             }
             else {
                 progress.max = NUM_IMAGES * outPixels.height;
                 progress.value = curImageNo * outPixels.height + curImageRow;
-                progress.style = "display:block";
+                progress.style.display = "block";
             }
             if(active)
                 window.requestAnimationFrame(proc);
@@ -303,7 +303,7 @@ try {
         let drawn = 0;
         let draw = function() {
             if(curImageNo >= 2) {
-                el.display.style = "display: block";
+                el.display.style.display = "block";
                 el.display.width = imagedatas[drawn].width;
                 el.display.height = imagedatas[drawn].height;
                 let ctx = el.display.getContext("2d");
@@ -314,7 +314,7 @@ try {
                 if(++drawn >= 2) drawn = 0;
             }
             else {
-                el.display.style = "display: none";
+                el.display.style.display = "none";
             }
             window.requestAnimationFrame(draw);
         }
@@ -325,8 +325,8 @@ try {
         }
         el.still_selector.onchange = updateStill;
         el.still_checkbox.onchange = function() {
-            el.still_div.style = el.still_checkbox.checked
-                ? "display:block" : "display:none";
+            el.still_div.style.display = el.still_checkbox.checked
+                ? "block" : "none";
         }
     }
 }
