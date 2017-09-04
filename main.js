@@ -25,7 +25,7 @@ try {
     // create our hidden canvas
     let canvas = document.getElementById("debug_canvas") || document.createElement("canvas");
     assume("getContext", canvas);
-    assume("toBlob", canvas);
+    assume("toDataURL", canvas);
     assume("performance");
     assume("now", performance);
     // quick stop to make HYBRID_FIR more memory efficient
