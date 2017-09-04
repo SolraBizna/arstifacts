@@ -270,7 +270,7 @@ try {
                     images[curImageNo] = new Image();
                     images[curImageNo].src = canvas.toDataURL("image/png");
                     imagedatas[curImageNo] = outPixels;
-                    if(createImageBitmap) {
+                    if("createImageBitmap" in window) {
                         let cpp = procPixels;
                         let cin = curImageNo;
                         createImageBitmap(outPixels).then(
