@@ -275,7 +275,6 @@ try {
                         let cin = curImageNo;
                         createImageBitmap(outPixels).then(
                             function(response) {
-                                console.log(response);
                                 if(procPixels == cpp) {
                                     imagebitmaps[cin] = response;
                                 }
