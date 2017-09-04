@@ -243,9 +243,9 @@ try {
                             let gb = Math.pow(outPixels.data[inp2++],2.2);
                             let bb = Math.pow(outPixels.data[inp2++],2.2);
                             inp2++;
-                            outPixels.data[outp++] = Math.pow((ra+rb)/4,1/2.2);
-                            outPixels.data[outp++] = Math.pow((ga+gb)/4,1/2.2);
-                            outPixels.data[outp++] = Math.pow((ba+bb)/4,1/2.2);
+                            outPixels.data[outp++] = Math.pow((ra+rb)/8,1/2.2);
+                            outPixels.data[outp++] = Math.pow((ga+gb)/8,1/2.2);
+                            outPixels.data[outp++] = Math.pow((ba+bb)/8,1/2.2);
                             outPixels.data[outp++] = 255;
                         }
                     }
