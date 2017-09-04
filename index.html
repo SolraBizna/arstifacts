@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ARS Artifacts Previewer</title>
+    <link rel="stylesheet" type="text/css" href="css.css">
+  </head>
+  <body>
+    <noscript>Unless you enable JavaScript, this page has no chance of working whatsoever.</noscript>
+    <p><input type="file" id="image_selector"></input><input type="checkbox" id="prescale_checkbox" checked> Strict mode (for entire screenshots) <input type="checkbox" id="scanline_checkbox" checked> Scanlines</p>
+    <canvas id="display"></canvas>
+    <progress id="progress"></progress>
+    <p><input type="checkbox" id="still_checkbox"> Show me something I can copy to my clipboard</p>
+    <div style="display:none" id="still_div"><image id="still_image"><br><select id="still_selector"><option value="even">Even frames (0, 2, 4, ...)</option><option value="odd">Odd frames (1, 3, 5, ...)</option><option value="avg" selected>Combination</option></select></div>
+    <script><!--
+try {if(!eval("let script = document.createElement('script'); script.src = 'data.js'; script.async = false; document.body.appendChild(script); script = document.createElement('script'); script.src = 'main.js'; script.async = false; document.body.appendChild(script); true")) throw "Bogus";}
+catch(e) {document.body.innerText = "Your browser must support ECMAScript 2015 in order to view this page.";}
+//--></script>
+  </body>
+</html>

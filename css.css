@@ -1,0 +1,10 @@
+body {
+    background-color: #000;
+    color: #ccc;
+}
+#debug_canvas {
+    border: 1px solid #f0f;
+}
+progress {
+    width: 100%;
+}
