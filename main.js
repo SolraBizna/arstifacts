@@ -12,7 +12,7 @@ try {
     let NUM_PHASES = 12;
     let OUT_RATIO = 2;
     let INTERESTING_ELEMENTS = [
-        "image_selector","prescale_checkbox","display","scanline_checkbox",
+        "image_selector","prescale_checkbox","display","scanline_mode_select",
         "progress"
     ];
     let el = {};
@@ -115,13 +115,17 @@ try {
     }
     // processing logic
     {
+        let GAMMA = 2.2;
+        let INVERSE_GAMMA = 1/2.2;
+        let BRIGHT_MULT = 1.5;
+        let BRIGHT_THRESHOLD = Math.pow(255, GAMMA);
         let procPixels, outPixels;
         let image;
         let curImageRow;
         let active = false;
         let proc;
         let newOutPixels = function() {
-            return new ImageData(procPixels.width*OUT_RATIO, procPixels.height*2-(el.scanline_checkbox.checked?1:0));
+            return new ImageData(procPixels.width*OUT_RATIO, procPixels.height*2-(el.scanline_mode_select.value>0?1:0));
         };
         beginNewProc = function(newProcPixels) {
             procPixels = newProcPixels;
@@ -183,35 +187,79 @@ try {
                         outPixels.data[outp++] = 255;
                     }
                 }
-                else if(el.scanline_checkbox.checked) {
-                    // interpolate scanlines
-                    let inp1 = outPixels.width * 4 * (curImageRow-procPixels.height)*2;
-                    let outp = inp1 + outPixels.width * 4;
-                    let inp2 = outp + outPixels.width * 4;
-                    for(let x = 0; x < outPixels.width; ++x) {
-                        let ra = Math.pow(outPixels.data[inp1++],2.2);
-                        let ga = Math.pow(outPixels.data[inp1++],2.2);
-                        let ba = Math.pow(outPixels.data[inp1++],2.2);
-                        inp1++;
-                        let rb = Math.pow(outPixels.data[inp2++],2.2);
-                        let gb = Math.pow(outPixels.data[inp2++],2.2);
-                        let bb = Math.pow(outPixels.data[inp2++],2.2);
-                        inp2++;
-                        outPixels.data[outp++] = Math.pow((ra+rb)/8,1/2.2);
-                        outPixels.data[outp++] = Math.pow((ga+gb)/8,1/2.2);
-                        outPixels.data[outp++] = Math.pow((ba+bb)/8,1/2.2);
-                        outPixels.data[outp++] = 255;
-                    }
-                }
                 else {
-                    // duplicate scanlines
-                    let inp = outPixels.width * 4 * (curImageRow-procPixels.height)*2;
-                    let outp = inp + outPixels.width * 4;
-                    for(let x = 0; x < outPixels.width; ++x) {
-                        outPixels.data[outp++] = outPixels.data[inp++];
-                        outPixels.data[outp++] = outPixels.data[inp++];
-                        outPixels.data[outp++] = outPixels.data[inp++];
-                        outPixels.data[outp++] = outPixels.data[inp++];
+                    switch(parseInt(el.scanline_mode_select.value)) {
+                    case 0:
+                        {
+                            // duplicate scanlines
+                            let inp = outPixels.width * 4 * (curImageRow-procPixels.height)*2;
+                            let outp = inp + outPixels.width * 4;
+                            for(let x = 0; x < outPixels.width; ++x) {
+                                outPixels.data[outp++] = outPixels.data[inp++];
+                                outPixels.data[outp++] = outPixels.data[inp++];
+                                outPixels.data[outp++] = outPixels.data[inp++];
+                                outPixels.data[outp++] = outPixels.data[inp++];
+                            }
+                        }
+                        break;
+                    case 1:
+                        {
+                            // interpolate scanlines
+                            let inp1 = outPixels.width * 4 * (curImageRow-procPixels.height)*2;
+                            let outp = inp1 + outPixels.width * 4;
+                            let inp2 = outp + outPixels.width * 4;
+                            for(let x = 0; x < outPixels.width; ++x) {
+                                let ra = Math.pow(outPixels.data[inp1++],GAMMA);
+                                let ga = Math.pow(outPixels.data[inp1++],GAMMA);
+                                let ba = Math.pow(outPixels.data[inp1++],GAMMA);
+                                inp1++;
+                                let rb = Math.pow(outPixels.data[inp2++],GAMMA);
+                                let gb = Math.pow(outPixels.data[inp2++],GAMMA);
+                                let bb = Math.pow(outPixels.data[inp2++],GAMMA);
+                                inp2++;
+                                outPixels.data[outp++] = Math.pow((ra+rb)/8,INVERSE_GAMMA);
+                                outPixels.data[outp++] = Math.pow((ga+gb)/8,INVERSE_GAMMA);
+                                outPixels.data[outp++] = Math.pow((ba+bb)/8,INVERSE_GAMMA);
+                                outPixels.data[outp++] = 255;
+                            }
+                        }
+                        break;
+                    case 2:
+                        {
+                            // overbright scanlines
+                            // (not *quite* the same as in the emulator, but you'll get the gist)
+                            let inp1 = outPixels.width * 4 * (curImageRow-procPixels.height)*2;
+                            let outp = inp1 + outPixels.width * 4;
+                            let inp2 = outp + outPixels.width * 4;
+                            for(let x = 0; x < outPixels.width; ++x) {
+                                let r_above = Math.pow(outPixels.data[inp1++],GAMMA);
+                                let g_above = Math.pow(outPixels.data[inp1++],GAMMA);
+                                let b_above = Math.pow(outPixels.data[inp1++],GAMMA);
+                                inp1 -= 3;
+                                let r_replace = r_above*BRIGHT_MULT;
+                                let r_bloom = Math.max(r_replace - BRIGHT_THRESHOLD, 0);
+                                let g_replace = g_above*BRIGHT_MULT;
+                                let g_bloom = Math.max(g_replace - BRIGHT_THRESHOLD, 0);
+                                let b_replace = b_above*BRIGHT_MULT;
+                                let b_bloom = Math.max(b_replace - BRIGHT_THRESHOLD, 0);
+                                outPixels.data[inp1++] = Math.pow(r_replace,INVERSE_GAMMA);
+                                outPixels.data[inp1++] = Math.pow(g_replace,INVERSE_GAMMA);
+                                outPixels.data[inp1++] = Math.pow(b_replace,INVERSE_GAMMA);
+                                ++inp1;
+                                let r_below = Math.pow(outPixels.data[inp2++],GAMMA);
+                                let g_below = Math.pow(outPixels.data[inp2++],GAMMA);
+                                let b_below = Math.pow(outPixels.data[inp2++],GAMMA);
+                                inp2++;
+                                r_bloom = (r_bloom + Math.max(r_below * BRIGHT_MULT - BRIGHT_THRESHOLD, 0)) / 4;
+                                g_bloom = (g_bloom + Math.max(g_below * BRIGHT_MULT - BRIGHT_THRESHOLD, 0)) / 4;
+                                b_bloom = (b_bloom + Math.max(b_below * BRIGHT_MULT - BRIGHT_THRESHOLD, 0)) / 4;
+                                outPixels.data[outp++] = Math.pow((r_above+r_below)/8+r_bloom,INVERSE_GAMMA);
+                                outPixels.data[outp++] = Math.pow((g_above+g_below)/8+g_bloom,INVERSE_GAMMA);
+                                outPixels.data[outp++] = Math.pow((b_above+b_below)/8+b_bloom,INVERSE_GAMMA);
+                                outPixels.data[outp++] = 255;
+                            }
+                        }
+                        break;
                     }
                 }
                 ++curImageRow;
@@ -233,13 +281,13 @@ try {
                     progress.max = outPixels.height;
                     progress.value = curImageRow;
                     progress.style.display = "block";
-                    el.display.style.display = "none";
+                    //el.display.style.display = "none";
                 }
             }
             if(active)
                 window.requestAnimationFrame(proc);
         }
-        el.scanline_checkbox.onchange = function() {
+        el.scanline_mode_select.onchange = function() {
             if(procPixels !== undefined)
                 beginNewProc(procPixels);
         }
