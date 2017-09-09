@@ -98,7 +98,6 @@ try {
     switchImage(INITIAL_IMAGE);
     let last_url = null;
     el.image_selector.onchange = function() {
-        console.log(el.image_selector.files);
         if(el.image_selector.files.length > 0) {
             if(last_url) {
                 URL.revokeObjectURL(last_url);
