@@ -146,14 +146,14 @@ try {
                     for(let out_x = 0; out_x < outPixels.width; ++out_x) {
                         let center_x = Math.floor(out_x / OUT_RATIO);
                         let start_filtp = 0;
-                        let start_x = center_x - HYBRID_FIR.radius - 1;
+                        let start_x = center_x - HYBRID_FIR.radius;
                         let start_pixp = start_x * 4;
                         if(start_x < 0) {
                             start_pixp = start_pixp + (start_x * -4);
                             start_filtp = start_filtp + (start_x * -9);
                             start_x = 0;
                         }
-                        let end_x = center_x + HYBRID_FIR.radius - 1;
+                        let end_x = center_x + HYBRID_FIR.radius;
                         if(end_x >= procPixels.width)
                             end_x = procPixels.width - 1;
                         let phase = (67 + center_x) % NUM_PHASES;
