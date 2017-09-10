@@ -236,11 +236,11 @@ try {
                                 let b_above = Math.pow(outPixels.data[inp1++],GAMMA);
                                 inp1 -= 3;
                                 let r_replace = r_above*BRIGHT_MULT;
-                                let r_bloom = Math.max(r_replace - BRIGHT_THRESHOLD, 0);
+                                let r_bloom = Math.max(r_replace - BRIGHT_THRESHOLD, 0) / 2;
                                 let g_replace = g_above*BRIGHT_MULT;
-                                let g_bloom = Math.max(g_replace - BRIGHT_THRESHOLD, 0);
+                                let g_bloom = Math.max(g_replace - BRIGHT_THRESHOLD, 0) / 2;
                                 let b_replace = b_above*BRIGHT_MULT;
-                                let b_bloom = Math.max(b_replace - BRIGHT_THRESHOLD, 0);
+                                let b_bloom = Math.max(b_replace - BRIGHT_THRESHOLD, 0) / 2;
                                 outPixels.data[inp1++] = Math.pow(r_replace,INVERSE_GAMMA);
                                 outPixels.data[inp1++] = Math.pow(g_replace,INVERSE_GAMMA);
                                 outPixels.data[inp1++] = Math.pow(b_replace,INVERSE_GAMMA);
@@ -249,9 +249,6 @@ try {
                                 let g_below = Math.pow(outPixels.data[inp2++],GAMMA);
                                 let b_below = Math.pow(outPixels.data[inp2++],GAMMA);
                                 inp2++;
-                                r_bloom = (r_bloom + Math.max(r_below * BRIGHT_MULT - BRIGHT_THRESHOLD, 0)) / 4;
-                                g_bloom = (g_bloom + Math.max(g_below * BRIGHT_MULT - BRIGHT_THRESHOLD, 0)) / 4;
-                                b_bloom = (b_bloom + Math.max(b_below * BRIGHT_MULT - BRIGHT_THRESHOLD, 0)) / 4;
                                 outPixels.data[outp++] = Math.pow((r_above+r_below)/8+r_bloom,INVERSE_GAMMA);
                                 outPixels.data[outp++] = Math.pow((g_above+g_below)/8+g_bloom,INVERSE_GAMMA);
                                 outPixels.data[outp++] = Math.pow((b_above+b_below)/8+b_bloom,INVERSE_GAMMA);
