@@ -4,16 +4,18 @@ let fatal = function(e) {
     throw e;
 };
 let assume = function(wat, where) {
-    if(!(wat in (where || window))) {
+    where = where || window;
+    if(!(wat in where)) {
         throw wat+" is required, but unavailable";
     }
+    else return where[wat];
 }
 try {
     let NUM_PHASES = 12;
     let OUT_RATIO = 2;
     let INTERESTING_ELEMENTS = [
         "image_selector","prescale_checkbox","display","scanline_mode_select",
-        "progress"
+        "cable_select","progress"
     ];
     let el = {};
     assume("forEach", INTERESTING_ELEMENTS);
@@ -29,14 +31,22 @@ try {
     assume("now", performance);
     // quick stop to make HYBRID_FIR more memory efficient
     assume("Float32Array");
-    HYBRID_FIR.kernel.forEach(function(phase) {
-        let MULT = 1/65536;
-        for(let subpixel = 0; phase[subpixel]; ++subpixel) {
-            let old = phase[subpixel];
-            for(let n = 0; n < old.length; ++n) old[n] *= MULT;
-            phase[subpixel] = Float32Array.from(old);
-        }
-    });
+    let packFilter = function(fir) {
+        fir.kernel.forEach(function(phase) {
+            let MULT = 1/65536;
+            for(let subpixel = 0; phase[subpixel]; ++subpixel) {
+                let old = phase[subpixel];
+                phase[subpixel] = Float32Array.from(old);
+                for(let n = 0; n < old.length; ++n) phase[subpixel][n] *= MULT;
+            }
+        });
+    }
+    for(name in FIR) {
+        packFilter(FIR[name]);
+    }
+    FIR.RGB = {"radius":0,"kernel":[[Float32Array.from([1,0,0,0,1,0,0,0,1])]]};
+    FIR.RGB.kernel[0][1] = FIR.RGB.kernel[0][0];
+    for(let n = 1; n < 12; ++n) FIR.RGB.kernel[n] = FIR.RGB.kernel[0];
     // a slapdash pipeline for image processing! HOORAY!
     assume("Image");
     let nextProcImage; // the image that is being loaded for subsequent processing
@@ -137,6 +147,7 @@ try {
             }
         }
         proc = function(now) {
+            let fir = assume(el.cable_select.value, FIR);
             let deadline = now + 60;
             while(curImageRow < outPixels.height
                   && performance.now() < deadline) {
@@ -146,14 +157,14 @@ try {
                     for(let out_x = 0; out_x < outPixels.width; ++out_x) {
                         let center_x = Math.floor(out_x / OUT_RATIO);
                         let start_filtp = 0;
-                        let start_x = center_x - HYBRID_FIR.radius;
+                        let start_x = center_x - fir.radius;
                         let start_pixp = start_x * 4;
                         if(start_x < 0) {
                             start_pixp = start_pixp + (start_x * -4);
                             start_filtp = start_filtp + (start_x * -9);
                             start_x = 0;
                         }
-                        let end_x = center_x + HYBRID_FIR.radius;
+                        let end_x = center_x + fir.radius;
                         if(end_x >= procPixels.width)
                             end_x = procPixels.width - 1;
                         let phase = (67 + center_x) % NUM_PHASES;
@@ -164,7 +175,7 @@ try {
                         let inpixp = curImageRow * procPixels.width * 4 + start_pixp;
                         let infiltp = start_filtp;
                         let local_phase;
-                        let filt = HYBRID_FIR.kernel[phase][subpixel];
+                        let filt = fir.kernel[phase][subpixel];
                         for(let in_x = start_x; in_x <= end_x; ++in_x) {
                             let in_r = procPixels.data[inpixp++];
                             let in_g = procPixels.data[inpixp++];
@@ -251,6 +262,10 @@ try {
             }
             if(active)
                 window.requestAnimationFrame(proc);
+        }
+        el.cable_select.onchange = function() {
+            if(procPixels !== undefined)
+                beginNewProc(procPixels);
         }
         el.scanline_mode_select.onchange = function() {
             if(procPixels !== undefined)
