@@ -202,7 +202,9 @@ try {
                         }
                         break;
                     case 1:
+                    case 2:
                         {
+                            let multiplier = 1 / (el.scanline_mode_select.value == 2 ? 4 : 8);
                             // interpolate scanlines
                             let inp1 = outPixels.width * 4 * (curImageRow-procPixels.height)*2;
                             let outp = inp1 + outPixels.width * 4;
@@ -216,42 +218,9 @@ try {
                                 let gb = Math.pow(outPixels.data[inp2++],GAMMA);
                                 let bb = Math.pow(outPixels.data[inp2++],GAMMA);
                                 inp2++;
-                                outPixels.data[outp++] = Math.pow((ra+rb)/8,INVERSE_GAMMA);
-                                outPixels.data[outp++] = Math.pow((ga+gb)/8,INVERSE_GAMMA);
-                                outPixels.data[outp++] = Math.pow((ba+bb)/8,INVERSE_GAMMA);
-                                outPixels.data[outp++] = 255;
-                            }
-                        }
-                        break;
-                    case 2:
-                        {
-                            // overbright scanlines
-                            // (not *quite* the same as in the emulator, but you'll get the gist)
-                            let inp1 = outPixels.width * 4 * (curImageRow-procPixels.height)*2;
-                            let outp = inp1 + outPixels.width * 4;
-                            let inp2 = outp + outPixels.width * 4;
-                            for(let x = 0; x < outPixels.width; ++x) {
-                                let r_above = Math.pow(outPixels.data[inp1++],GAMMA);
-                                let g_above = Math.pow(outPixels.data[inp1++],GAMMA);
-                                let b_above = Math.pow(outPixels.data[inp1++],GAMMA);
-                                inp1 -= 3;
-                                let r_replace = r_above*BRIGHT_MULT;
-                                let r_bloom = Math.max(r_replace - BRIGHT_THRESHOLD, 0) / 2;
-                                let g_replace = g_above*BRIGHT_MULT;
-                                let g_bloom = Math.max(g_replace - BRIGHT_THRESHOLD, 0) / 2;
-                                let b_replace = b_above*BRIGHT_MULT;
-                                let b_bloom = Math.max(b_replace - BRIGHT_THRESHOLD, 0) / 2;
-                                outPixels.data[inp1++] = Math.pow(r_replace,INVERSE_GAMMA);
-                                outPixels.data[inp1++] = Math.pow(g_replace,INVERSE_GAMMA);
-                                outPixels.data[inp1++] = Math.pow(b_replace,INVERSE_GAMMA);
-                                ++inp1;
-                                let r_below = Math.pow(outPixels.data[inp2++],GAMMA);
-                                let g_below = Math.pow(outPixels.data[inp2++],GAMMA);
-                                let b_below = Math.pow(outPixels.data[inp2++],GAMMA);
-                                inp2++;
-                                outPixels.data[outp++] = Math.pow((r_above+r_below)/8+r_bloom,INVERSE_GAMMA);
-                                outPixels.data[outp++] = Math.pow((g_above+g_below)/8+g_bloom,INVERSE_GAMMA);
-                                outPixels.data[outp++] = Math.pow((b_above+b_below)/8+b_bloom,INVERSE_GAMMA);
+                                outPixels.data[outp++] = Math.pow((ra+rb)*multiplier,INVERSE_GAMMA);
+                                outPixels.data[outp++] = Math.pow((ga+gb)*multiplier,INVERSE_GAMMA);
+                                outPixels.data[outp++] = Math.pow((ba+bb)*multiplier,INVERSE_GAMMA);
                                 outPixels.data[outp++] = 255;
                             }
                         }
